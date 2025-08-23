@@ -1,9 +1,8 @@
 # T20 Winner Prediction
 
 ## Role-Based Team Strengths for Cricket Match Prediction
-Match-level feature engineering, leakage-safe joins, role analytics, and model benchmarking
-
-TL;DR
+-Match-level feature engineering, leakage-safe joins, role analytics, and model benchmarking
+-TL;DR
 
 Transforms past match-level player data (no heavy ball-by-ball) into role-based team strengths (openers, top/middle/lower order; pace/spin/all-round/part-time), visualizes how role imbalances drive wins, and benchmarks a model zoo. Results (test split): Bagging tops Accuracy/Balanced Accuracy (~0.695), SVC leads AUC (~0.688), LDA gives best probability calibration (LogLoss ~0.640, Brier ~0.225). All features are computed only from prior matches to avoid leakage.
 
