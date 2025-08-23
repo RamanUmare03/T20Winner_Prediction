@@ -36,6 +36,7 @@ Transforms **past match-level player data** (no heavy ball-by-ball) into **role-
 ## ⚙️ Feature Engineering  
 
 ![Feature Engineering Flow](https://github.com/user-attachments/assets/08da708a-46d6-4678-b28f-5d1283105685)
+![Spin Bowlers feature engineering](spin_bowlers.png)
 
 ### 🏏 Batting (per player, pre-match)  
 - **Recent form (last N matches):** runs, average, strike rate, boundary%, dismissal tendencies  
