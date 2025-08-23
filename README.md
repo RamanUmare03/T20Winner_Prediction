@@ -36,9 +36,9 @@ Transforms **past match-level player data** (no heavy ball-by-ball) into **role-
 ## ⚙️ Feature Engineering  
 
 ![Feature Engineering Flow](https://github.com/user-attachments/assets/08da708a-46d6-4678-b28f-5d1283105685)
-![Spin Bowlers feature engineering](spin_bowlers.png)
 
 ### 🏏 Batting (per player, pre-match)  
+![Batting top order feature engineering](top_order_score.png)
 - **Recent form (last N matches):** runs, average, strike rate, boundary%, dismissal tendencies  
 - **Career-to-date:** cumulative runs, avg, SR (excluding current match)  
 - **Role assignment (by roster slot):**  
@@ -53,6 +53,7 @@ Transforms **past match-level player data** (no heavy ball-by-ball) into **role-
   - Lower → emphasize **SR + boundary%**  
 
 ### 🎯 Bowling (per player, pre-match)  
+![Spin Bowlers feature engineering](spin_bowlers.png)
 - **Recent form (last N):** economy, avg, SR, dot%, boundaries conceded%, extras%  
 - **Career-to-date:** economy, avg, SR (excluding current match)  
 - **Role grouping (by bowling score):**  
@@ -97,7 +98,8 @@ Transforms **past match-level player data** (no heavy ball-by-ball) into **role-
 - GBMs: XGBoost, LightGBM  
 - Neural: MLP  
 
-### 📈 Outcomes (test split)  
+### 📈 Outcomes (test split) 
+![Model comparison](model_comparison.png)
 - ✅ **Best hard calls:** **Bagging** → Accuracy/BalAcc ≈ **0.695**  
 - 🔼 **Best ranking:** **SVC** → AUC ≈ **0.688**  
 - 📉 **Best probabilities:** **LDA** → LogLoss ≈ **0.640**, Brier ≈ **0.225**  
