@@ -1,24 +1,135 @@
-# T20 Winner Prediction
+# 🏏 T20 Winner Prediction  
 
-## Role-Based Team Strengths for Cricket Match Prediction
--Match-level feature engineering, leakage-safe joins, role analytics, and model benchmarking
--TL;DR
+## 📌 Role-Based Team Strengths for Cricket Match Prediction  
+**Match-level feature engineering, leakage-safe joins, role analytics, and model benchmarking**
 
-Transforms past match-level player data (no heavy ball-by-ball) into role-based team strengths (openers, top/middle/lower order; pace/spin/all-round/part-time), visualizes how role imbalances drive wins, and benchmarks a model zoo. Results (test split): Bagging tops Accuracy/Balanced Accuracy (~0.695), SVC leads AUC (~0.688), LDA gives best probability calibration (LogLoss ~0.640, Brier ~0.225). All features are computed only from prior matches to avoid leakage.
+---
 
-## Models Used
-The core of the prediction system is an ensemble model combining **XGBoost** and **LightGBM**. These models were chosen for their:
+## 🚀 TL;DR  
+Transforms **past match-level player data** (no heavy ball-by-ball) into **role-based team strengths** (openers, top/middle/lower order; pace/spin/all-round/part-time), visualizes how **role imbalances drive wins**, and benchmarks a model zoo.  
 
-- **High accuracy** and **F1 score**.
-- Ability to effectively manage **imbalanced datasets**, which is crucial in sports predictions where outcomes can be skewed.
+**Results (test split):**
+- 🥇 **Bagging** → Best **Accuracy/Balanced Accuracy (~0.695)**
+- 🥈 **SVC** → Best **AUC (~0.688)**
+- 🥉 **LDA** → Best **probability calibration** (LogLoss ~0.640, Brier ~0.225)  
 
-## Feature Engineering
-![debc5844-9002-4f62-8ba1-ea4dddbffeb7](https://github.com/user-attachments/assets/08da708a-46d6-4678-b28f-5d1283105685)
+👉 All features are computed **only from prior matches** to strictly avoid data leakage.  
 
-A key aspect of this project is the development of novel features that capture various factors influencing match outcomes. One such feature is the **`valuable_players_ratio`**, which assigns a score to each team based on the past performances of its players. This feature, along with others, enhances the model's predictive power by providing deeper insights into team dynamics.
+---
 
-## Model Performance
-On unseen data, the model consistently achieves an accuracy of **65-70%**. This level of performance indicates a strong ability to generalize and provides valuable predictions for real-world applications.
+## 💡 Why this project matters
+- 🎯 **Game-aware features** → Converts raw player history into **role-specific strengths** that reflect how teams actually win.  
+- 🔒 **Leakage-proof** → Strict **time-aware joins**; current match excluded from aggregates.  
+- 📊 **Explainable edges** → Visual + statistical links from **role advantage → win probability**.  
+- ⚡ **Deployable models** → Benchmarked & calibrated classifiers with trade-offs (accuracy vs ranking vs probability quality).  
 
-## Conclusion
-This project demonstrates the application of machine learning in sports analytics, offering a practical tool for predicting T20 match outcomes. The ensemble model's effectiveness and the innovative features developed make it a powerful resource for strategic planning and analysis.
+---
+
+## 📂 Data & Inputs
+- **`bat`** → per-player match-level **batting stats** (runs, balls, 4s/6s, dismissal type, etc.)  
+- **`bowl`** → per-player match-level **bowling stats** (runs conceded, balls, wickets, dots, wides/no-balls, maidens…)  
+- **`match`** → match metadata + **rosters** (`team1_P1..P12`, `team2_P1..P12`) + **winner12 (1/2/0)**  
+- Dates normalized to datetime; all joins **respect chronology**  
+
+---
+
+## ⚙️ Feature Engineering  
+
+![Feature Engineering Flow](https://github.com/user-attachments/assets/08da708a-46d6-4678-b28f-5d1283105685)
+
+### 🏏 Batting (per player, pre-match)  
+- **Recent form (last N matches):** runs, average, strike rate, boundary%, dismissal tendencies  
+- **Career-to-date:** cumulative runs, avg, SR (excluding current match)  
+- **Role assignment (by roster slot):**  
+  - Openers **P1–P2**  
+  - Top order **P3–P4**  
+  - Middle **P5–P7**  
+  - Lower/Finishers **P8–P12**  
+- **Role-aware scoring:**  
+  - Openers → emphasize **SR + boundary%**  
+  - Top → balanced mix **avg + SR + stability**  
+  - Middle → emphasize **average/stability**  
+  - Lower → emphasize **SR + boundary%**  
+
+### 🎯 Bowling (per player, pre-match)  
+- **Recent form (last N):** economy, avg, SR, dot%, boundaries conceded%, extras%  
+- **Career-to-date:** economy, avg, SR (excluding current match)  
+- **Role grouping (by bowling score):**  
+  - Pace attack (Top 3)  
+  - Spin support (Next 3)  
+  - All-rounders (Next 3)  
+  - Part-timers (Last 3)  
+- **Scoring formula:** heavier weight on **economy (career + recent)**, then **average**, plus positive weight for **dot%**  
+
+### 🏟️ Team Features  
+- Aggregate player scores → **team role strengths** (bat + bowl)  
+- Target label = **`winner12`** (1 = Team1 win, 2 = Team2 win, 0 = draw/unknown)  
+- Guarantee: Every feature uses **only pre-match data**  
+
+✨ Key extra feature: **`valuable_players_ratio`** → score capturing relative past performance quality within each team.  
+
+---
+
+## 📊 Visual Analytics  
+
+1. **Scatter + KDE** → (Team1 vs Team2 strength) with `y=x` line → head-to-head advantage  
+2. **Violin + Box** → distribution shifts for winners vs losers  
+3. **Win probability curve** → binned win rates w/ **Wilson CIs + LOWESS smoothing**  
+4. **Histogram** → role differences colored by outcome  
+5. **ECDF** → role difference distributions split by outcome  
+
+🔍 **Insight:** Quantifies **how much role advantage** is needed to shift **win odds**.  
+
+---
+
+## 🤖 Modeling & Results  
+
+### 🔧 Preprocessing  
+- `VarianceThreshold` → drop near-constant features  
+- `StandardScaler` (with PCA @95% var for non-tree models)  
+- **Stratified 5-fold CV** → time-aware data prep ensures no leakage  
+
+### 🧩 Model Zoo  
+- Linear: Logistic Regression, **LDA**  
+- Kernel: **SVC**  
+- Ensembles: Random Forest, Extra Trees, Gradient Boosting, **Bagging**  
+- GBMs: XGBoost, LightGBM  
+- Neural: MLP  
+
+### 📈 Outcomes (test split)  
+- ✅ **Best hard calls:** **Bagging** → Accuracy/BalAcc ≈ **0.695**  
+- 🔼 **Best ranking:** **SVC** → AUC ≈ **0.688**  
+- 📉 **Best probabilities:** **LDA** → LogLoss ≈ **0.640**, Brier ≈ **0.225**  
+
+### 🏆 Practical picks  
+- Need **highest hit-rate** → **Bagging**  
+- Need **reliable probabilities** → **LDA** (or calibrated SVC/Bagging)  
+- Need **balance** → **Soft-voting ensemble** (Bagging + SVC + LDA)  
+
+---
+
+## 📦 Deliverables  
+- ✅ **Player feature tables** (batting & bowling: recent form + career)  
+- ✅ **Match-level dataset** (team role strengths + winner labels)  
+- ✅ **Visualization suite** (role advantage → win odds)  
+- ✅ **Model benchmarking report** (metrics + rankings)  
+
+---
+
+## 🛠️ Tech Stack  
+`pandas`, `numpy`, `scikit-learn`, `statsmodels` (LOWESS, CIs),  
+`matplotlib` / `seaborn`, `xgboost`, `lightgbm`  
+
+---
+
+## 🎯 Conclusion  
+This project demonstrates the **power of machine learning in sports analytics** by combining **historical match data, player statistics, and engineered features** to predict T20 cricket outcomes.  
+
+- Achieved **high predictive accuracy** with **Bagging (Accuracy ~0.695)**  
+- Delivered **explainable insights** through role-based visual analytics  
+- Ensured **robustness** via strict leakage-safe joins and time-aware splits  
+- Balanced **prediction accuracy & probability calibration** for real-world usability  
+
+👉 Beyond predictions, this work showcases how **data-driven techniques** can improve decision-making for analysts, teams, and fans — a practical case of applying **AI/ML in real-world sports strategy**.  
+
+---
