@@ -112,7 +112,7 @@ Transforms **past match-level player data** (no heavy ball-by-ball) into **role-
 ---
 
 ## 📦 Deliverables  
-- ✅ **Player feature tables** (batting & bowling: recent form + career)  
+- ✅ **Player feature tables** (batting & bowling: recent form + career performance)  
 - ✅ **Match-level dataset** (team role strengths + winner labels)  
 - ✅ **Visualization suite** (role advantage → win odds)  
 - ✅ **Model benchmarking report** (metrics + rankings)  
